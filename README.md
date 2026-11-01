@@ -32,3 +32,7 @@ If you want to create a standalone executable for Windows, use **PyInstaller**:
 
 ```bash
 pyinstaller --noconfirm --onefile --windowed --add-data "icona.ico;." --icon "icona.ico" --uac-admin nfsu2_profile_master.py
+
+
+## License
+GPL 3 
