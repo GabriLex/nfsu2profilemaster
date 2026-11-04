@@ -1,6 +1,6 @@
 # NFSU2 Profile Master 🏁
 
-A lightweight, user-friendly Python utility designed to edit savegames in **Need for Speed Underground 2**. It handles the technical heavy lifting like finding hidden save paths and bypassing Windows folder permissions.
+A lightweight, user-friendly C sharp utility designed to edit savegames in **Need for Speed Underground 2**. It handles the technical heavy lifting like finding hidden save paths and bypassing Windows folder permissions.
 
 ## 🖼️ Screenshots
 
@@ -20,18 +20,16 @@ A lightweight, user-friendly Python utility designed to edit savegames in **Need
 * **UNLOCK PARTS OPTION**
 * **SAVEGAME CAR EXTRACTION AND PATCHING**
 * **EVERY CUSTOM CAR SWAPPING**
+* **MANUAL SAVEGAMES LOAD **
 
 ## 🛠️ How it Works
 
-The tool modifies the save file at a specific hex offset (**41322**) where NFSU2 stores the career credit value using a little-endian 4-byte integer.
+The tool modifies the save file at a specific hex offset (**41322**) where NFSU2 stores the career credit value using a little-endian 4-byte integer and other hex patches for car parts
 
 
 ## 📦 Compiling to .exe
 
-If you want to create a standalone executable for Windows, use **PyInstaller**:
-
-
-pyinstaller --noconfirm --onefile --windowed --add-data "icona.ico;." --icon "icona.ico" --uac-admin nfsu2_profile_master.py
+dotnet publish -c Release -r win-x64 --self-contained false -o publish
 
 
 ## License
