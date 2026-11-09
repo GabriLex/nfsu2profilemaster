@@ -23,7 +23,7 @@ A lightweight, user-friendly C sharp utility designed to edit savegames in **Nee
 * **MANUAL SAVEGAMES LOAD **
 * Player name and money reading
 
-HackCH stuff 
+HackCH stuff (Thanks for the contribute)
 
 * Tuning
 * Lock/Unlock slot
