@@ -1,36 +1,25 @@
-# NFSU2 Profile Master 🏁
+# NFSU2 Profiles Master (C# / .NET 8, WinForms)
 
-A lightweight, user-friendly C sharp utility designed to edit savegames in **Need for Speed Underground 2**. It handles the technical heavy lifting like finding hidden save paths and bypassing Windows folder permissions.
+by GabriLex. Garage editor / tuning / checksum / backup ZIP: funzioni basate su
+[NFSU2-Savegame-Editor](https://github.com/hackch/NFSU2-Savegame-Editor) di **hackch** (MIT, vedi `LICENSE-hackch.txt`).
 
-## 🖼️ Screenshots
+## Compilare
+Serve il .NET 8 SDK (https://dotnet.microsoft.com/download) su Windows.
 
-| Italian Interface | English Interface |
-| :---: | :---: |
-| ![Italian UI](patcher_it.png) | ![English UI](patcher.png) |
+Piccolo (richiede .NET 8 Desktop Runtime sul PC di chi lo usa) - CONSIGLIATO, meno falsi positivi:
+    dotnet publish -c Release -r win-x64 --self-contained false -o publish
 
-## ✨ Features
+Autonomo (funziona ovunque, ~150 MB, nessuna compressione):
+    dotnet publish -c Release -r win-x64 --self-contained true -o publish
 
-* **Auto-Detection**: Automatically finds save games in `%LOCALAPPDATA%`, `VirtualStore`, and common installation paths (including Steam versions).
-* **Safety First**: Built-in "Extract" and "Restore" system to create backups before any modification.
-* **Admin Privileges**: Automatically requests UAC elevation to ensure it can write save data in protected directories.
-* **Bilingual**: Full support for both **Italian** and **English**.
-* **Deep Scan**: Recursively searches for profile-specific files (save files with no extension) across multiple drives.
-* **Rename Option**
-* **VEHICLE SWAP !(SLOT 1)**
-* **UNLOCK PARTS OPTION**
-* **SAVEGAME CAR EXTRACTION AND PATCHING**
-* **EVERY CUSTOM CAR SWAPPING**
-* **MANUAL SAVEGAMES LOAD **
+L'exe e' in .\publish\NFSU2ProfileMaster.exe
+Icona: copia il tuo file come `icona.ico` accanto al .csproj prima di compilare.
 
-## 🛠️ How it Works
+## File slot (ESTRAI SLOT / APPLICA SLOT)
+Nel Garage Editor: salva in un .json il record completo (auto, aspetto, tuning, stato slot) degli slot scelti,
+e riapplicalo scegliendo per ogni voce lo slot di destinazione (anche slot diversi o 6-10 di un backup ZIP).
+Formato: `nfsu2-slot-pack` v1. Non verificato in gioco: tieni un backup.
 
-The tool modifies the save file at a specific hex offset (**41322**) where NFSU2 stores the career credit value using a little-endian 4-byte integer and other hex patches for car parts
-
-
-## 📦 Compiling to .exe
-
-dotnet publish -c Release -r win-x64 --self-contained false -o publish
-
-
-## License
-GPL 3 
+## Non ancora incluso (dal sito di hackch)
+Personalizzazione estetica (vernice, vinili...) e Dyno richiedono di leggere GLOBALB.BUN del gioco.
+Le funzioni sperimentali (carriera, scambio slot, auto traffico) sono escluse di proposito.

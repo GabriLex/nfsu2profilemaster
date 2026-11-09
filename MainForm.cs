@@ -29,6 +29,7 @@ public sealed class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = Theme.Bg;
         DoubleBuffered = true;
+        AutoScroll = true;
 
         TrySetIcon();
         BuildUi();
@@ -42,7 +43,7 @@ public sealed class MainForm : Form
         {
             string loose = Path.Combine(AppContext.BaseDirectory, "icona.ico");
             if (File.Exists(loose)) { Icon = new Icon(loose); return; }
-            if (Environment.ProcessPath is { } exe) Icon = Icon.ExtractAssociatedIcon(exe);  // icona incorporata
+            Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? Icon;  // icona incorporata nell'exe
         }
         catch { /* icona opzionale */ }
     }
@@ -65,6 +66,12 @@ public sealed class MainForm : Form
             header.Controls.Add(b);
             lx += 36;
         }
+
+        var credits = Theme.MakeButton("", Theme.Gold, Theme.BtnNorm, Theme.Border, Theme.BtnHov, Theme.Gold, 9);
+        credits.SetBounds(22, 12, 86, 24);
+        credits.Click += (_, _) => ThemedDialog.Show(this, Strings.Get("t_credits"), Strings.Get("credits_text"), DialogKind.Info);
+        _i18n.Add((credits, "credits_btn", true));
+        header.Controls.Add(credits);
 
         _y = HeaderH + 2;
 
@@ -132,6 +139,11 @@ public sealed class MainForm : Form
         // Tools
         AddSection("TOOLS", literal: true);
         AddButtonRow(("rename_btn", ApplyRename), ("backup_btn", ApplyBackup));
+        AddSeparator();
+
+        // Garage editor (funzioni da NFSU2-Savegame-Editor di hackch)
+        AddSection("hk_section", tag: "hackch");
+        AddButtonRow(("hk_garage_btn", OpenGarage), ("hk_zip_btn", OpenZipBackup));
 
         // Footer
         var footer = new Label
@@ -147,7 +159,10 @@ public sealed class MainForm : Form
         _i18n.Add((footer, "footer", false));
         Controls.Add(footer);
 
-        ClientSize = new Size(W, footer.Bottom);
+        int wanted = footer.Bottom;
+        int maxH = Screen.PrimaryScreen is { } scr ? scr.WorkingArea.Height - 80 : wanted;
+        bool scroll = wanted > maxH;
+        ClientSize = new Size(W + (scroll ? SystemInformation.VerticalScrollBarWidth : 0), Math.Min(wanted, maxH));
     }
 
     private void PaintHeader(object? sender, PaintEventArgs e)
@@ -185,7 +200,7 @@ public sealed class MainForm : Form
             TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis);
     }
 
-    private void AddSection(string keyOrText, bool literal = false)
+    private void AddSection(string keyOrText, bool literal = false, string? tag = null)
     {
         var pnl = new Panel { Left = Mx, Top = _y + 6, Width = Cw, Height = 24, BackColor = Theme.Bg };
         var lbl = new Label
@@ -195,11 +210,15 @@ public sealed class MainForm : Form
         };
         if (!literal) _i18n.Add((lbl, keyOrText, true));
         pnl.Controls.Add(lbl);
+        int tagWidth = tag == null ? 0 : TextRenderer.MeasureText(tag, Theme.Mono(9)).Width;
         pnl.Paint += (_, e) =>
         {
             using (var bar = new SolidBrush(Theme.SelGreen)) e.Graphics.FillRectangle(bar, 0, 3, 4, 18);
             using var pen = new Pen(Theme.LineSep);
-            e.Graphics.DrawLine(pen, lbl.Right + 8, 12, Cw, 12);
+            e.Graphics.DrawLine(pen, lbl.Right + 8, 12, Cw - (tag == null ? 0 : tagWidth + 10), 12);
+            if (tag != null)
+                TextRenderer.DrawText(e.Graphics, tag, Theme.Mono(9), new Rectangle(Cw - tagWidth - 4, 0, tagWidth + 4, 24),
+                    Theme.Gold, TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
         };
         lbl.TextChanged += (_, _) => pnl.Invalidate();
         _sections.Add(pnl);
@@ -340,7 +359,7 @@ public sealed class MainForm : Form
     private void ApplyMoney()
     {
         if (_list.SelectedItem == null) { Selected(); return; }
-        if (!uint.TryParse(_money.Text.Trim(), out uint amount))
+        if (!uint.TryParse(_money.Text.Trim(), out uint amount) || amount > int.MaxValue)
         {
             Info("t_error", Strings.Get("err_money"), DialogKind.Error);
             return;
@@ -450,6 +469,72 @@ public sealed class MainForm : Form
         catch (Exception ex)
         {
             Info("t_error", ex.Message, DialogKind.Error);
+        }
+    }
+
+    // ───────── Garage editor / backup ZIP (hackch) ─────────
+
+    private void OpenGarage()
+    {
+        var sel = Selected();
+        if (sel is null) return;
+        try
+        {
+            var doc = SaveDocument.OpenFile(sel.Value.Path);
+            using var f = new GarageForm(doc);
+            f.ShowDialog(this);
+            RefreshProfiles(sel.Value.Name);
+        }
+        catch (InvalidDataException)
+        {
+            Info("t_error", Strings.Get("err_not_20cm"), DialogKind.Error);
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+        {
+            Info("t_error", Strings.Get("err_admin"), DialogKind.Error);
+        }
+    }
+
+    private void OpenZipBackup()
+    {
+        using var dlg = new OpenFileDialog
+        {
+            Title = Strings.Get("dlg_open_zip"),
+            Filter = "ZIP (*.zip)|*.zip|*.*|*.*",
+            CheckFileExists = true,
+        };
+        if (dlg.ShowDialog(this) != DialogResult.OK) return;
+        try
+        {
+            if (!SaveDocument.LooksLikeZip(dlg.FileName))
+            {
+                Info("t_error", Strings.Get("err_zip_none"), DialogKind.Error);
+                return;
+            }
+            var profiles = SaveDocument.ReadBackupProfiles(dlg.FileName);
+            if (profiles.Count == 0)
+            {
+                Info("t_error", Strings.Get("err_zip_none"), DialogKind.Error);
+                return;
+            }
+            int pick = 0;
+            if (profiles.Count > 1)
+            {
+                pick = PickDialog.Choose(this, Strings.Get("hk_zip_btn").TrimEnd('.'), Strings.Get("zip_pick"),
+                    profiles.Select(p => p.GarageState == GarageState.Loaded ? p.Name + "  (+GARAGE.DAT)" : p.Name).ToList());
+                if (pick < 0) return;
+            }
+            var doc = SaveDocument.OpenBackup(dlg.FileName, profiles[pick]);
+            using var f = new GarageForm(doc);
+            f.ShowDialog(this);
+        }
+        catch (Exception ex) when (ex is InvalidDataException)
+        {
+            Info("t_error", Strings.Get("err_zip_none"), DialogKind.Error);
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+        {
+            Info("t_error", Strings.Get("err_admin"), DialogKind.Error);
         }
     }
 }

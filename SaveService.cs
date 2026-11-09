@@ -94,6 +94,20 @@ public static class SaveService
             fs.Seek(off, SeekOrigin.Begin);
             fs.Write(data, 0, data.Length);
         }
+        FixChecksums(fs);
+    }
+
+    /// <summary>Se il file e' un salvataggio 20CM valido, ricalcola i checksum dopo la scrittura (come l'editor di hackch).</summary>
+    private static void FixChecksums(FileStream fs)
+    {
+        if (fs.Length > 10_000_000) return;
+        var buf = new byte[fs.Length];
+        fs.Seek(0, SeekOrigin.Begin);
+        fs.ReadExactly(buf, 0, buf.Length);
+        if (CareerSave.Check(buf) != null) return;       // non e' un 20CM: non tocco nulla
+        CareerSave.RecalculateChecksums(buf);
+        fs.Seek(0, SeekOrigin.Begin);
+        fs.Write(buf, 0, CareerLayout.HeaderSize);       // i checksum stanno nell'header
     }
 
     public static void WriteBlocks(string path, IEnumerable<Block> blocks) =>
