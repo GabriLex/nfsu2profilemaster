@@ -16,11 +16,19 @@ A lightweight, user-friendly C sharp utility designed to edit savegames in **Nee
 * **Bilingual**: Full support for both **Italian** and **English**.
 * **Deep Scan**: Recursively searches for profile-specific files (save files with no extension) across multiple drives.
 * **Rename Option**
-* **VEHICLE SWAP !(SLOT 1)**
+* **VEHICLE SWAP !(SLOT 1 or more)**
 * **UNLOCK PARTS OPTION**
 * **SAVEGAME CAR EXTRACTION AND PATCHING**
 * **EVERY CUSTOM CAR SWAPPING**
 * **MANUAL SAVEGAMES LOAD **
+* Player name and money reading
+
+HackCH stuff 
+
+* Tuning
+* Lock/Unlock slot
+* Checksum Recalcolation
+  
 
 ## 🛠️ How it Works
 
