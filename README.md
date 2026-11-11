@@ -28,6 +28,11 @@ HackCH stuff (Thanks for the contribute)
 * Tuning
 * Lock/Unlock slot
 * Checksum Recalcolation
+
+MenphisRider stuff (Thanks for the contribute)
+
+* Garage management 
+* Owned cars management
   
 
 ## 🛠️ How it Works
