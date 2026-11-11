@@ -17,24 +17,24 @@ public sealed class GarageForm : Form
 
     private byte[] D => _doc.Data;
 
-    public GarageForm(SaveDocument doc)
+    public GarageForm(SaveDocument doc, bool openSlotManager = false)
     {
         _doc = doc;
-        Text = Strings.Get("g_title") + " - hackch";
+        Text = Strings.Get("g_title") + " - hackch + MemphisRider";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false; MinimizeBox = false; ShowInTaskbar = false;
         StartPosition = FormStartPosition.CenterParent;
         BackColor = Theme.Bg;
         AutoScaleDimensions = new SizeF(96F, 96F);
         AutoScaleMode = AutoScaleMode.Dpi;
-        ClientSize = new Size(780, 560);
+        ClientSize = new Size(780, 612);
 
         // ── intestazione ──
         var header = new Panel { Left = 0, Top = 0, Width = 780, Height = 64, BackColor = Theme.PanelBg };
         header.Controls.Add(new Label
         {
-            Text = Strings.Get("g_title") + "  ·  hackch", ForeColor = Theme.SelGreen, Font = Theme.Impact(18),
-            Left = 14, Top = 6, Width = 500, Height = 30, AutoSize = false,
+            Text = Strings.Get("g_title") + "  ·  hackch + MemphisRider", ForeColor = Theme.SelGreen, Font = Theme.Impact(18),
+            Left = 14, Top = 6, Width = 750, Height = 30, AutoSize = false,
         });
         _docTitle.SetBounds(14, 38, 750, 20);
         _docTitle.ForeColor = Theme.TxtGrey; _docTitle.Font = Theme.Mono(9); _docTitle.AutoSize = false;
@@ -108,19 +108,24 @@ public sealed class GarageForm : Form
         var btnApplySlots = SmallButton(Strings.Get("g_apply_slots"), 570, 412, 196);
         btnApplySlots.Click += (_, _) => ApplySlots();
 
+        var btnManager = Theme.MakeButton(Strings.Get("sm_btn") + "  ·  AJLethal", Theme.Gold, Theme.BtnNorm, Theme.Gold, Theme.BtnHov, Theme.Gold, 11);
+        btnManager.SetBounds(360, 456, 406, 36);
+        btnManager.Click += (_, _) => OpenSlotManager();
+        Controls.Add(btnManager);
+
         // ── barra inferiore ──
-        _status.SetBounds(14, 478, 560, 24);
+        _status.SetBounds(14, 530, 560, 24);
         _status.ForeColor = Theme.TxtGrey; _status.Font = Theme.Mono(9); _status.AutoSize = false;
         Controls.Add(_status);
         _btnSave = Theme.MakeButton(Strings.Get("g_save"), Theme.SelGreen, Theme.SelDark, Theme.SelRing, Theme.SelDarker, Theme.SelGreen, 14);
-        _btnSave.SetBounds(590, 470, 176, 42);
+        _btnSave.SetBounds(590, 522, 176, 42);
         _btnSave.Click += (_, _) => Save();
         Controls.Add(_btnSave);
 
         var note = new Label
         {
             Text = doc.Note, ForeColor = Theme.TxtGrey, Font = Theme.Mono(8), AutoSize = false,
-            Left = 14, Top = 520, Width = 752, Height = 28,
+            Left = 14, Top = 572, Width = 752, Height = 28,
         };
         Controls.Add(note);
 
@@ -130,6 +135,7 @@ public sealed class GarageForm : Form
         };
 
         LoadProfileFields();
+        if (openSlotManager) Shown += (_, _) => OpenSlotManager();
         for (int i = 0; i < _doc.SlotCount; i++) _slots.Items.Add(i);
         _slots.SelectedIndex = 0;
         RefreshAll();
@@ -283,6 +289,13 @@ public sealed class GarageForm : Form
     {
         for (int i = 0; i < _doc.SlotCount; i++) SetSlotLocked(D, i, false);
         MarkDirty();
+    }
+
+    private void OpenSlotManager()
+    {
+        using var f = new SlotManagerForm(D, MarkDirty);
+        f.ShowDialog(this);
+        RefreshAll();
     }
 
     private void OpenTuning()

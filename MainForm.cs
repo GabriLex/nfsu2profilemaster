@@ -139,11 +139,13 @@ public sealed class MainForm : Form
         // Tools
         AddSection("TOOLS", literal: true);
         AddButtonRow(("rename_btn", ApplyRename), ("backup_btn", ApplyBackup));
+        AddButton("restore_btn", RestoreBackup, height: 34, fontSize: 11);
         AddSeparator();
 
         // Garage editor (funzioni da NFSU2-Savegame-Editor di hackch)
-        AddSection("hk_section", tag: "hackch");
+        AddSection("hk_section", tag: "hackch + MemphisRider");
         AddButtonRow(("hk_garage_btn", OpenGarage), ("hk_zip_btn", OpenZipBackup));
+        AddButton("sm_btn", OpenSlotManagerDirect, height: 38, fontSize: 11);
 
         // Footer
         var footer = new Label
@@ -271,6 +273,7 @@ public sealed class MainForm : Form
         foreach (var (ctl, key, upper) in _i18n)
         {
             string t = Strings.Get(key);
+            if (key == "footer") t = string.Format(t, AppVersion.Text);
             ctl.Text = upper ? t.ToUpperInvariant() : t;
         }
         foreach (var s in _sections) s.Invalidate();
@@ -408,6 +411,29 @@ public sealed class MainForm : Form
             Info("t_backup", Strings.Get("backup_done"));
         });
 
+    private void RestoreBackup()
+    {
+        var sel = Selected();
+        if (sel is null) return;
+        using var dlg = new OpenFileDialog { Title = Strings.Get("dlg_open_bak"), Filter = "*.*|*.*", CheckFileExists = true };
+        if (dlg.ShowDialog(this) != DialogResult.OK) return;
+        if (!ThemedDialog.Confirm(this, Strings.Get("t_confirm"),
+                string.Format(Strings.Get("restore_confirm"), Path.GetFileName(dlg.FileName), sel.Value.Name))) return;
+        try
+        {
+            string safety = SaveService.RestoreBackup(sel.Value.Path, dlg.FileName);
+            Info("t_done", string.Format(Strings.Get("restore_done"), safety));
+        }
+        catch (InvalidDataException)
+        {
+            Info("t_error", Strings.Get("restore_invalid"), DialogKind.Error);
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+        {
+            Info("t_error", Strings.Get("err_admin"), DialogKind.Error);
+        }
+    }
+
     private void ExtractCarPatch()
     {
         var sel = Selected();
@@ -474,14 +500,19 @@ public sealed class MainForm : Form
 
     // ───────── Garage editor / backup ZIP (hackch) ─────────
 
-    private void OpenGarage()
+    private void OpenGarage() => OpenGarage(false);
+
+    /// <summary>Apre il Garage Editor e subito la finestra "Gestione slot" (MemphisRider).</summary>
+    private void OpenSlotManagerDirect() => OpenGarage(true);
+
+    private void OpenGarage(bool slotManager)
     {
         var sel = Selected();
         if (sel is null) return;
         try
         {
             var doc = SaveDocument.OpenFile(sel.Value.Path);
-            using var f = new GarageForm(doc);
+            using var f = new GarageForm(doc, slotManager);
             f.ShowDialog(this);
             RefreshProfiles(sel.Value.Name);
         }

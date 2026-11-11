@@ -16,10 +16,11 @@
     <Company>GabriLex</Company>
     <Product>NFSU2 Profiles Master</Product>
     <Description>Save game editor for Need for Speed Underground 2</Description>
-    <Version>1.0.9</Version>
-    <AssemblyVersion>1.0.9.0</AssemblyVersion>
-    <FileVersion>1.0.9.0</FileVersion>
+    <Version>1.10</Version>
+    <AssemblyVersion>1.10.0.0</AssemblyVersion>
+    <FileVersion>1.10.0.0</FileVersion>
     <Copyright>GabriLex</Copyright>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 
     <!-- Publish: un solo file, NIENTE UPX/packer/compressione/trimming -->
     <PublishSingleFile>true</PublishSingleFile>
@@ -31,6 +32,7 @@
 
   <ItemGroup>
     <None Include="LICENSE-hackch.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="LICENSE-MemphisRider.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

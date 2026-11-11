@@ -205,4 +205,17 @@ public static class SaveService
         File.Copy(savePath, file, overwrite: true);
         return file;
     }
+
+    /// <summary>Ripristina un backup sul salvataggio. Prima copia il salvataggio attuale sul Desktop. Ritorna il percorso di quella copia.</summary>
+    public static string RestoreBackup(string savePath, string backupPath)
+    {
+        var bytes = File.ReadAllBytes(backupPath);
+        if (CareerSave.Check(bytes) is not null) throw new InvalidDataException("not a 20CM save");
+        string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "NFSU2_Backups");
+        Directory.CreateDirectory(dir);
+        string safety = Path.Combine(dir, Path.GetFileName(savePath) + $"_prima_del_ripristino_{DateTime.Now:yyyyMMdd_HHmmss}.bak");
+        File.Copy(savePath, safety, overwrite: true);
+        File.WriteAllBytes(savePath, bytes);
+        return safety;
+    }
 }
