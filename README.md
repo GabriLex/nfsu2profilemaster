@@ -20,8 +20,8 @@ A lightweight, user-friendly C sharp utility designed to edit savegames in **Nee
 * **UNLOCK PARTS OPTION**
 * **SAVEGAME CAR EXTRACTION AND PATCHING**
 * **EVERY CUSTOM CAR SWAPPING**
-* **MANUAL SAVEGAMES LOAD **
-* Player name and money reading
+* **MANUAL SAVEGAMES LOAD**
+* **Player name and money reading**
 
 HackCH stuff (Thanks for the contribute)
 
